@@ -1,4 +1,4 @@
-# zh-cn.yml
+# zh_CN.yml
 messages:
   total_items: "您的背包一共有 {items} 个物品。"
   death_punish: "你死了，扣除了 {exp} 经验和 {money} 金币。"

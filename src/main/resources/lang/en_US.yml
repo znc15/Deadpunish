@@ -1,3 +1,4 @@
+# en_US.yml
 messages:
   total_items: "Your inventory has a total of {items} items."
   death_punish: "You died and lost {exp} experience and {money} money."
@@ -8,4 +9,3 @@ deathChestSignLines:
   - "&eHere lies"
   - "&c{player}"
   - "&7RIP"
-
