@@ -263,13 +263,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             headBlock.getState().update();
         }
 
-        // 在箱子前面放置告示牌并设置方向
+        // 获取箱子的朝向
         BlockFace chestFacing = ((Directional) block.getBlockData()).getFacing();
+
+        // 在箱子正面放置告示牌并设置方向
         Block signBlock = block.getRelative(chestFacing);
         signBlock.setType(Material.OAK_WALL_SIGN);
         if (signBlock.getBlockData() instanceof WallSign) {
             WallSign signData = (WallSign) signBlock.getBlockData();
-            signData.setFacing(chestFacing.getOppositeFace());
+            signData.setFacing(chestFacing);
             signBlock.setBlockData(signData);
         }
 
@@ -284,7 +286,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             sign.update();
         }
     }
-
 
     private String getPermissionGroup(Player player) {
         User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
