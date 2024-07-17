@@ -146,7 +146,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             if (!currentVersion.equals(latestVersion)) {
                 getLogger().info(ChatColor.GREEN + "发现新版本 " + latestVersion + "，请前往 https://github.com/znc15/deadpunish 下载更新。");
             } else {
-                getLogger().info("您用的是最新版本喵呜");
+                getLogger().info("您用的是最新版本喵呜！");
             }
 
         } catch (IOException e) {
