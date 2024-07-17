@@ -33,16 +33,17 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private Economy economy;
     private FileConfiguration config;
     private FileConfiguration langConfig;
+    private Random random = new Random();
 
     @Override
     public void onEnable() {
@@ -97,7 +98,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     private void setupLang() {
-        String lang = config.getString("language", "en_US");
+        String lang = config.getString("language", "zh_CN");
         File langFile = new File(getDataFolder(), "lang" + File.separator + lang + ".yml");
         if (!langFile.exists()) {
             getLogger().severe("语言文件 " + lang + ".yml 未找到！");
@@ -170,11 +171,19 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         // 使用 LuckPerms API 获取权限组
         String permissionGroup = getPermissionGroup(player);
 
-        // 根据权限组扣除经验和金币
+        // 根据权限组扣除经验
         double expToDeduct = getExpDeduction(player, permissionGroup);
-        double moneyToDeduct = getMoneyDeduction(player, permissionGroup);
-
         player.setLevel(Math.max(0, player.getLevel() - (int) expToDeduct));
+
+        // 根据配置文件的设置，决定扣除金币的方式
+        double moneyToDeduct;
+        int totalItems = 0;
+        if (config.getBoolean("calculateBasedOnItems", false)) {
+            totalItems = getTotalItems(player);
+            moneyToDeduct = getMoneyDeductionBasedOnItems(player, permissionGroup);
+        } else {
+            moneyToDeduct = getMoneyDeduction(player, permissionGroup);
+        }
 
         // 添加null检查，确保economy对象不为null
         if (economy != null) {
@@ -183,12 +192,17 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             Map<String, Object> placeholders = new HashMap<>();
             placeholders.put("exp", Math.round(expToDeduct));
             placeholders.put("money", Math.round(moneyToDeduct));
+            placeholders.put("items", totalItems);
+
+            if (config.getBoolean("calculateBasedOnItems", false)) {
+                player.sendMessage(getLangMessage("total_items", placeholders));
+            }
             player.sendMessage(getLangMessage("death_punish", placeholders));
 
             // 添加检查，判断是否掉落物品
             double dropThreshold = config.getDouble("dropThreshold", 1000.0);
             if (economy.getBalance(player) < dropThreshold) {
-                createDeathChest(player);
+                createDeathChest(player, placeholders);
                 player.sendMessage(getLangMessage("low_balance", placeholders));
             } else {
                 // 获取复活后的金币余额
@@ -199,7 +213,31 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
     }
 
-    private void createDeathChest(Player player) {
+    private double getMoneyDeductionBasedOnItems(Player player, String permissionGroup) {
+        ItemStack[] items = player.getInventory().getContents();
+        double totalValue = 0.0;
+        double itemValue = config.getDouble("itemValuePercentages." + permissionGroup, 1.0);
+        for (ItemStack item : items) {
+            if (item != null && !item.getType().equals(Material.AIR)) {
+                double randomMultiplier = 1.0 + (random.nextDouble() * (config.getDouble("itemValueVariance", 0.5) - 0.5));
+                totalValue += item.getAmount() * itemValue * randomMultiplier;
+            }
+        }
+        return totalValue;
+    }
+
+    private int getTotalItems(Player player) {
+        ItemStack[] items = player.getInventory().getContents();
+        int totalItems = 0;
+        for (ItemStack item : items) {
+            if (item != null && !item.getType().equals(Material.AIR)) {
+                totalItems += item.getAmount();
+            }
+        }
+        return totalItems;
+    }
+
+    private void createDeathChest(Player player, Map<String, Object> placeholders) {
         Location location = player.getLocation();
         Block block = location.getBlock();
         block.setType(Material.CHEST);
@@ -225,42 +263,28 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             headBlock.getState().update();
         }
 
-        // 在箱子旁边放置告示牌并设置方向
-        BlockFace signFace = getFacingDirection(player);
-        Block signBlock = block.getRelative(signFace);
+        // 在箱子前面放置告示牌并设置方向
+        BlockFace chestFacing = ((Directional) block.getBlockData()).getFacing();
+        Block signBlock = block.getRelative(chestFacing);
         signBlock.setType(Material.OAK_WALL_SIGN);
         if (signBlock.getBlockData() instanceof WallSign) {
             WallSign signData = (WallSign) signBlock.getBlockData();
-            signData.setFacing(signFace.getOppositeFace());
+            signData.setFacing(chestFacing.getOppositeFace());
             signBlock.setBlockData(signData);
         }
 
         if (signBlock.getState() instanceof Sign) {
             Sign sign = (Sign) signBlock.getState();
-            List<String> signLines = config.getStringList("deathChestSignLines");
+            List<String> signLines = langConfig.getStringList("deathChestSignLines");
             for (int i = 0; i < Math.min(signLines.size(), 4); i++) {
-                sign.setLine(i, ChatColor.translateAlternateColorCodes('&', signLines.get(i).replace("{player}", player.getName())));
+                String line = signLines.get(i);
+                line = line.replace("{player}", player.getName());
+                sign.setLine(i, ChatColor.translateAlternateColorCodes('&', line));
             }
             sign.update();
         }
     }
 
-    private BlockFace getFacingDirection(Player player) {
-        // 获取玩家面向的方向
-        float yaw = player.getLocation().getYaw();
-        if (yaw < 0) {
-            yaw += 360;
-        }
-        if (yaw >= 315 || yaw < 45) {
-            return BlockFace.SOUTH;
-        } else if (yaw < 135) {
-            return BlockFace.WEST;
-        } else if (yaw < 225) {
-            return BlockFace.NORTH;
-        } else {
-            return BlockFace.EAST;
-        }
-    }
 
     private String getPermissionGroup(Player player) {
         User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());

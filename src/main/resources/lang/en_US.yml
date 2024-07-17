@@ -1,4 +1,11 @@
 messages:
-  death_punish: "You died and lost {exp} XP and {money} coins."
-  low_balance: "Your balance is below the threshold, your items have been dropped!"
-  balance_saved: "Congratulations, your wallet saved your inventory, you have {balance} coins left."
+  total_items: "Your inventory has a total of {items} items."
+  death_punish: "You died and lost {exp} experience and {money} money."
+  low_balance: "Your balance is below {money}, all items have been dropped."
+  balance_saved: "Congratulations, your wallet saved your inventory. You have {balance} money left."
+
+deathChestSignLines:
+  - "&eHere lies"
+  - "&c{player}"
+  - "&7RIP"
+
