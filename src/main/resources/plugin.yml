@@ -1,0 +1,17 @@
+name: Deadpunish
+version: 1.0.2
+main: com.littlesheep.deadpunish.Main
+api-version: 1.20
+description: 死亡惩罚插件，死亡时扣除玩家一定比例的经验和金币。
+author: Yang XiaoMian
+commands:
+  dp:
+    description: 重新加载 Deadpunish 插件.
+    usage: /dp reload
+  deadpunish:
+    description: 重新加载 Deadpunish 插件.
+    usage: /deadpunish reload
+permissions:
+  deadpunish.reload:
+    description: 允许重新加载 Deadpunish 插件.
+    default: op

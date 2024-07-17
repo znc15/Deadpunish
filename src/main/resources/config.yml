@@ -1,0 +1,41 @@
+# config.yml
+
+#语言配置
+language: "zh_CN"
+
+# 金币低于此值时掉落物品
+dropThreshold: 10000.0
+
+#告示牌文字
+deathChestSignLines:
+  - "&eHere lies"
+  - "&c{player}"
+  - "&7RIP"
+  -
+
+#是否按照物品计算
+calculateBasedOnItems: true
+
+#物品价值
+itemValue: 1.0
+
+#浮动大小
+itemValueVariance: 0.5
+
+# 经验扣除百分比
+expDeductionPercentages:
+  default: 2
+  vip: 3
+  admin: 5
+
+# 金币扣除百分比
+moneyDeductionPercentages:
+  default: 5
+  vip: 7
+  admin: 10
+
+#检查更新
+checkForUpdates: true
+
+#统计信息
+enableMetrics: true

@@ -1,0 +1,5 @@
+# zh-cn.yml
+messages:
+  death_punish: "你死了，扣除了 {exp} 经验和 {money} 金币。"
+  low_balance: "你的金币余额低于阈值，身上的物品已经掉落！"
+  balance_saved: "恭喜你，您的钱包拯救了您的背包，您还剩 {balance} 金币。"
